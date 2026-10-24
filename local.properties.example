@@ -1,0 +1,3 @@
+# Android Studio generates sdk.dir in local.properties.
+# Optional integration credential, supplied by the developer at build time:
+yclients.partnerToken=

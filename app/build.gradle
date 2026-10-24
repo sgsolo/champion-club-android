@@ -1,0 +1,35 @@
+plugins { id 'com.android.application' }
+def localSettings = new Properties()
+def localSettingsFile = rootProject.file('local.properties')
+if (localSettingsFile.exists()) localSettingsFile.withInputStream { localSettings.load(it) }
+def integrationKey = providers.environmentVariable('YCLIENTS_PARTNER_TOKEN').getOrElse(localSettings.getProperty('yclients.partnerToken', '')).trim()
+if (integrationKey =~ /[\s,]/) throw new GradleException('Invalid integration credential format')
+android {
+    namespace 'club.champion.tennis'
+    compileSdk 36
+    useLibrary 'android.test.runner'
+    useLibrary 'android.test.base'
+    defaultConfig {
+        applicationId 'club.champion.tennis'
+        minSdk 26
+        targetSdk 36
+        versionCode 16
+        versionName '1.7.0'
+        buildConfigField 'String', 'PARTNER_TOKEN', groovy.json.JsonOutput.toJson(integrationKey)
+        testInstrumentationRunner 'android.test.InstrumentationTestRunner'
+    }
+    buildFeatures { buildConfig true }
+    buildTypes {
+        debug { buildConfigField 'boolean', 'LOCAL_SERVER', 'false' }
+        release { minifyEnabled false; buildConfigField 'boolean', 'LOCAL_SERVER', 'false' }
+        sandbox {
+            initWith debug
+            applicationIdSuffix '.sandbox'
+            versionNameSuffix '-local'
+            buildConfigField 'boolean', 'LOCAL_SERVER', 'true'
+            matchingFallbacks = ['debug']
+        }
+    }
+    testBuildType providers.gradleProperty('testBuildType').getOrElse('debug')
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
